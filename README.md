@@ -3,10 +3,9 @@
 
 # Laravel wrapper for Sqids
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/guava/sqids-for-laravel.svg?style=flat-square)](https://packagist.org/packages/guava/sqids-for-laravel)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/guava/sqids-for-laravel/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/guava/sqids-for-laravel/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/guava/sqids-for-laravel/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/guava/sqids-for-laravel/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/guava/sqids-for-laravel.svg?style=flat-square)](https://packagist.org/packages/guava/sqids-for-laravel)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/guavaCZ/sqids-for-laravel.svg?style=flat-square)](https://packagist.org/packages/guava/sqids-for-laravel)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/guavaCZ/sqids-for-laravel/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/guava/sqids-for-laravel/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![Total Downloads](https://img.shields.io/packagist/dt/guavaCZ/sqids-for-laravel.svg?style=flat-square)](https://packagist.org/packages/guava/sqids-for-laravel)
 
 Laravel Wrapper for [sqids.org](https://sqids.org) PHP library.
 
