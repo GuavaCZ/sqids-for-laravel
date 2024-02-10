@@ -2,9 +2,9 @@
 
 namespace Guava\Sqids\Tests;
 
+use Guava\Sqids\SqidsServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Guava\Sqids\SqidsServiceProvider;
 
 class TestCase extends Orchestra
 {

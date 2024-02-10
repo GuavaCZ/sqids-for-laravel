@@ -6,7 +6,6 @@ use Sqids\Sqids;
 
 trait WithMinLength
 {
-
     public function minLength(int $minLength): static
     {
         $this->minLength = $minLength;
@@ -18,5 +17,4 @@ trait WithMinLength
     {
         return $this->minLength ?? Sqids::DEFAULT_MIN_LENGTH;
     }
-
 }

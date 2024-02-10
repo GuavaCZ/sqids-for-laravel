@@ -15,7 +15,8 @@ class SqidsServiceProvider extends PackageServiceProvider
          * More info: https://github.com/spatie/laravel-package-tools
          */
         $package
-            ->name('sqids-for-laravel');
+            ->name('sqids-for-laravel')
+        ;
 
         $this->app->bind(Sqids::class, function ($app, $parameters) {
             return new Sqids(...$parameters);
