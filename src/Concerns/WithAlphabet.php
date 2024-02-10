@@ -6,7 +6,6 @@ use Sqids\Sqids;
 
 trait WithAlphabet
 {
-
     public function alphabet(string $alphabet): static
     {
         $this->alphabet = $alphabet;
