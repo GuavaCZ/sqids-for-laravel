@@ -1,26 +1,14 @@
-![:package_name Banner](docs/images/banner.jpg)
+![sqids-for-laravel Banner](docs/images/banner.jpg)
 
 
-# :package_description
+# Laravel wrapper for Sqids
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-<!--delete-->
----
-This repo can be used to scaffold a Laravel package. Follow these steps to get started:
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/guava/sqids-for-laravel.svg?style=flat-square)](https://packagist.org/packages/guava/sqids-for-laravel)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/guava/sqids-for-laravel/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/guava/sqids-for-laravel/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/guava/sqids-for-laravel/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/guava/sqids-for-laravel/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![Total Downloads](https://img.shields.io/packagist/dt/guava/sqids-for-laravel.svg?style=flat-square)](https://packagist.org/packages/guava/sqids-for-laravel)
 
-1. Press the "Use this template" button at the top of this repo to create a new repo with the contents of this skeleton.
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files.
-3. Have fun creating your package.
----
-<!--/delete-->
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
-
-## Showcase
-
-This is where your screenshots and videos should go. Remember to add them, so people see what your plugin does.
+Laravel Wrapper for [sqids.org](https://sqids.org) PHP library.
 
 ## Support us
 
@@ -33,46 +21,152 @@ While our plugin is available for all to use, if you are utilizing it for commer
 You can install the package via composer:
 
 ```bash
-composer require :vendor_slug/:package_slug
-```
-
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag=":package_slug-migrations"
-php artisan migrate
-```
-
-You can publish the config file with:
-
-```bash
-php artisan vendor:publish --tag=":package_slug-config"
-```
-
-This is the contents of the published config file:
-
-```php
-return [
-];
-```
-
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag=":package_slug-views"
+composer require guava/sqids-for-laravel
 ```
 
 ## Usage
+This package adds a slightly modified version of the Sqids class, which allows a fluent configuration of all options. It also adds a salting option.
 
+### Generating Sqids
+There's multiple ways you can use this package to generate sqids:
 ```php
-$variable = new VendorName\Skeleton();
-echo $variable->echoPhrase('Hello, VendorName!');
+// Via our Facade
+use Guava\Sqids\Facades\Sqids;
+
+Sqids::encode([1,2,3]); /// Outputs '86Rf07'
+
+
+
+// Via a classic instance
+use Guava\Sqids\Sqids;
+$sqids = new Sqids();
+$sqids->encode([1,2,3]); /// Outputs '86Rf07'
+
+
+
+// Via the app container / dependency injection
+use Guava\Sqids\Sqids;
+app(Sqids::class)->encode([1,2,3]); /// Outputs '86Rf07'
+
+
+
+// Via our factory method, which simply returns an instance of Sqids
+// The factory method is also available on the facade class
+use Guava\Sqids\Sqids;
+Sqids::make()->encode([1,2,3]);
 ```
 
-## Testing
+It's entirely up to you which way you prefer. In our examples, we will make use of the factory method.
 
-```bash
-composer test
+### Using in Eloquent Models
+This package also comes with a trait that you can use in your Eloquent models. This trait will automatically add a sqid attribute which will be created from the model's primary key.
+```php
+use \Illuminate\Database\Eloquent\Model;
+use \Guava\Sqids\Concerns\HasSqids;
+
+class YourModel extends Model {
+    use HasSqids;
+    
+    // ...
+}
+````
+That's it! Now you can access the `sqid` attribute on your model.
+
+You can custimize how the sqid on your model is generated by overriding the `getSqids` method:
+```php
+use \Illuminate\Database\Eloquent\Model;
+use \Guava\Sqids\Concerns\HasSqids;
+use \Guava\Sqids\Sqids;
+
+class YourModel extends Model {
+    use HasSqids;
+    
+    // ...
+    
+    protected function getSqids(): Sqids
+    {
+        return Sqids::make()
+            ->salt() // This will use the model's class name as the salt, so every model generates different IDs
+             // ... add more options here
+        );
+    }
+}
+```
+
+### Route binding
+If you want to be able to use the `sqid` as the route key, simply add the `HasSqidsRouting` trait to your model:
+```php
+use \Illuminate\Database\Eloquent\Model;
+use \Guava\Sqids\Concerns\HasSqids;
+use \Guava\Sqids\Concerns\HasSqidsRouting;
+
+class YourModel extends Model {
+    use HasSqids, HasSqidsRouting;
+    
+    // ...
+}
+```
+
+### Options
+
+#### Customizing the alphabet
+```php
+use Guava\Sqids\Sqids;
+
+Sqids::make()
+->alphabet('0123456789abcdef')
+->encode([1,2,3]); /// Outputs 'c9bf67'
+```
+
+#### Customizing the minLength
+```php
+use Guava\Sqids\Sqids;
+
+Sqids::make()
+->minLength('8')
+->encode([1,2,3]); /// Outputs '86Rf07xd'
+```
+
+#### Customizing the block list
+```php
+use Guava\Sqids\Sqids;
+
+Sqids::make()
+->blocklist(['86Rf07'])
+->encode([1,2,3]); /// Outputs 'se8ojk'
+```
+
+#### Salting
+Salting can be used to generate different IDs based on the provided salt, which can be any string or integer.
+
+```php
+use Guava\Sqids\Sqids;
+
+Sqids::make()
+->salt('my-salt')
+->encode([1,2,3]); /// Outputs 'rx035W'
+```
+
+Salting is especially useful when used on Models with the `HasSqids` trait and you want every model to return different, unique IDs.
+
+So for example a record of `Model1` with the ID 1 has a different sqid that a record of `Model2` with the ID 1.
+```php
+use \Illuminate\Database\Eloquent\Model;
+use \Guava\Sqids\Concerns\HasSqids;
+use \Guava\Sqids\Sqids;
+
+class YourModel extends Model {
+    use HasSqids;
+    
+    // ...
+    
+    protected function getSqids(): Sqids
+    {
+        return Sqids::make()
+            ->salt() // This will use the model's class name as the salt, so every model generates different IDs
+        );
+    }
+}
 ```
 
 ## Changelog
@@ -89,9 +183,10 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [:author_name](https://github.com/:author_username)
+- [Lukas Frey](https://github.com/lukas-frey)
 - [All Contributors](../../contributors)
 - Spatie - Our package skeleton is a modified version of [Spatie's Package Skeleton](https://github.com/spatie/package-skeleton-laravel)
+- https://github.com/mtvs/eloquent-hashids
 
 ## License
 

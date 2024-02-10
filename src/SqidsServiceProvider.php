@@ -1,12 +1,11 @@
 <?php
 
-namespace VendorName\Skeleton;
+namespace Guava\Sqids;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use VendorName\Skeleton\Commands\SkeletonCommand;
 
-class SkeletonServiceProvider extends PackageServiceProvider
+class SqidsServiceProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package): void
     {
@@ -16,11 +15,10 @@ class SkeletonServiceProvider extends PackageServiceProvider
          * More info: https://github.com/spatie/laravel-package-tools
          */
         $package
-            ->name('skeleton')
-            ->hasConfigFile()
-            ->hasViews()
-            ->hasMigration('create_skeleton_table')
-            ->hasCommand(SkeletonCommand::class)
-        ;
+            ->name('sqids-for-laravel');
+
+        $this->app->bind(Sqids::class, function ($app, $parameters) {
+            return new Sqids(...$parameters);
+        });
     }
 }
