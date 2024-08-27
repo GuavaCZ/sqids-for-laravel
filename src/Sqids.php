@@ -25,14 +25,12 @@ class Sqids extends \Sqids\Sqids
 
     public function decode(string $id): array
     {
-        $output = parent::decode($id);
-
         if ($salt = $this->getSalt()) {
             srand($salt);
             $this->alphabet = str_shuffle($this->getAlphabet());
         }
 
-        return $output;
+        return parent::decode($id);
     }
 
     public static function make(array $parameters = []): static
