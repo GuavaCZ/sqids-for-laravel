@@ -173,6 +173,57 @@ class YourModel extends Model {
 
 Salting does not use PHP's random number generator: a salt gives the same sqids on every PHP version, and `rand()`, `shuffle()` and friends are left untouched.
 
+### Storing the sqid in a column
+`HasSqids` computes the sqid on every read, so the database knows nothing about it. When you need to search by it (by prefix too), join on it or read it from outside the app, store it in a column with the `HasStoredSqids` trait, used in place of `HasSqids` and `HasSqidsRouting`:
+```php
+use \Illuminate\Database\Eloquent\Model;
+use \Guava\Sqids\Concerns\HasStoredSqids;
+
+class YourModel extends Model {
+    use HasStoredSqids;
+    
+    // ...
+}
+```
+
+The ID is known only after the insert, so the column is filled right after the model is created. Make it nullable, with a unique index:
+```php
+$table->string('sqid')->nullable()->unique();
+```
+
+The sqid is the model's route key, looked up in the column, so only the stored sqid finds the model. Everything can be customized:
+```php
+class Ticket extends Model {
+    use HasStoredSqids;
+
+    // The column the sqid is stored in ('sqid' by default)
+    public function getSqidColumn(): string
+    {
+        return 'code';
+    }
+
+    // Brings a sqid from a URL to the form it is stored in
+    public function normalizeSqid(string $sqid): string
+    {
+        return strtoupper(trim($sqid));
+    }
+
+    protected function getSqids(): Sqids
+    {
+        return Sqids::make()
+            ->alphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            ->minLength(5)
+            ->salt('ticket')
+        ;
+    }
+}
+```
+
+Rows inserted without model events (bulk inserts, seeders using `WithoutModelEvents`) or before the column existed get no sqid. Fill them with:
+```php
+Ticket::backfillSqids(); // Returns the number of rows filled
+```
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.

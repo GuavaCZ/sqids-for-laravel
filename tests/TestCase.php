@@ -38,5 +38,16 @@ class TestCase extends Orchestra
                 $table->id();
             });
         }
+
+        Schema::create('tickets', function (Blueprint $table) {
+            $table->id();
+            $table->string('code')->nullable()->unique();
+            $table->string('summary')->nullable();
+        });
+
+        Schema::create('invoices', function (Blueprint $table) {
+            $table->id();
+            $table->string('sqid')->nullable()->unique();
+        });
     }
 }
