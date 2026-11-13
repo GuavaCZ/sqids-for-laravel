@@ -2,20 +2,33 @@
 
 use Guava\Sqids\Sqids;
 
-it('keeps salted ids identical to previous releases', function () {
-    expect(Sqids::make()->salt('my-salt')->encode([1, 2, 3]))->toBe('rx035W')
-        ->and(Sqids::make()->salt('my-salt')->encode([42]))->toBe('3V')
-        ->and(Sqids::make()->alphabet('abcdef')->salt('my-salt')->encode([10]))->toBe('eaf')
-        ->and(Sqids::make()->salt()->encode([1]))->toBe('2A')
+it('gives the same ids for a salt on every run', function () {
+    expect(Sqids::make()->salt('my-salt')->encode([1, 2, 3]))->toBe('MNtmFG')
+        ->and(Sqids::make()->salt('my-salt')->encode([42]))->toBe('e7')
+        ->and(Sqids::make()->alphabet('abcdef')->salt('my-salt')->encode([10]))->toBe('fcd')
+        ->and(Sqids::make()->salt()->encode([1]))->toBe('rQ')
+    ;
+});
+
+it('gives different ids under different salts', function () {
+    expect(Sqids::make()->salt('first')->encode([1, 2, 3]))
+        ->not->toBe(Sqids::make()->salt('second')->encode([1, 2, 3]))
+        ->not->toBe(Sqids::make()->encode([1, 2, 3]))
+    ;
+});
+
+it('uses its own class name as the salt when none is given outside a model', function () {
+    expect(Sqids::make()->salt()->encode([1, 2, 3]))
+        ->toBe(Sqids::make()->salt(Sqids::class)->encode([1, 2, 3]))
     ;
 });
 
 it('returns the same id when a salted instance encodes repeatedly', function () {
     $sqids = Sqids::make()->salt('my-salt');
 
-    expect($sqids->encode([1, 2, 3]))->toBe('rx035W')
-        ->and($sqids->encode([1, 2, 3]))->toBe('rx035W')
-        ->and($sqids->encode([1, 2, 3]))->toBe('rx035W')
+    expect($sqids->encode([1, 2, 3]))->toBe('MNtmFG')
+        ->and($sqids->encode([1, 2, 3]))->toBe('MNtmFG')
+        ->and($sqids->encode([1, 2, 3]))->toBe('MNtmFG')
     ;
 });
 
@@ -35,7 +48,7 @@ it('does not change the alphabet of a salted instance', function () {
     $alphabet = $sqids->getAlphabet();
 
     $sqids->encode([1]);
-    $sqids->decode('3V');
+    $sqids->decode('e7');
 
     expect($sqids->getAlphabet())->toBe($alphabet);
 });
@@ -44,5 +57,16 @@ it('restores the alphabet when encoding throws', function () {
     $sqids = Sqids::make()->salt('my-salt');
 
     expect(fn () => $sqids->encode([-1]))->toThrow(InvalidArgumentException::class)
-        ->and($sqids->encode([42]))->toBe('3V');
+        ->and($sqids->encode([42]))->toBe('e7')
+    ;
+});
+
+it('leaves the random number generator alone', function () {
+    mt_srand(5);
+    $expected = mt_rand();
+
+    mt_srand(5);
+    Sqids::make()->salt('my-salt')->encode([1, 2, 3]);
+
+    expect(mt_rand())->toBe($expected);
 });

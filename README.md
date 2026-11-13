@@ -114,7 +114,7 @@ use Guava\Sqids\Sqids;
 
 Sqids::make()
 ->alphabet('0123456789abcdef')
-->encode([1,2,3]); /// Outputs 'c9bf67'
+->encode([1,2,3]); /// Outputs '489158'
 ```
 
 #### Customizing the minLength
@@ -122,7 +122,7 @@ Sqids::make()
 use Guava\Sqids\Sqids;
 
 Sqids::make()
-->minLength('8')
+->minLength(8)
 ->encode([1,2,3]); /// Outputs '86Rf07xd'
 ```
 
@@ -143,12 +143,12 @@ use Guava\Sqids\Sqids;
 
 Sqids::make()
 ->salt('my-salt')
-->encode([1,2,3]); /// Outputs 'rx035W'
+->encode([1,2,3]); /// Outputs 'MNtmFG'
 ```
 
-Salting is especially useful when used on Models with the `HasSqids` trait and you want every model to return different, unique IDs.
+Salting is especially useful on models, when you want every model to return different IDs: a record of `Model1` with the ID 1 then has a different sqid than a record of `Model2` with the ID 1.
 
-So for example a record of `Model1` with the ID 1 has a different sqid that a record of `Model2` with the ID 1.
+Called without a value, `salt()` uses the model's morph class: its class name, or its alias when you have a [morph map](https://laravel.com/docs/eloquent-relationships#custom-polymorphic-types).
 ```php
 use \Illuminate\Database\Eloquent\Model;
 use \Guava\Sqids\Concerns\HasSqids;
@@ -162,11 +162,16 @@ class YourModel extends Model {
     protected function getSqids(): Sqids
     {
         return Sqids::make()
-            ->salt() // This will use the model's class name as the salt, so every model generates different IDs
-        );
+            ->salt() // The model's morph class is the salt, so every model generates different IDs
+        ;
     }
 }
 ```
+
+> [!IMPORTANT]
+> A salt must never change once sqids are in links, e-mails or a database column: a different salt gives different sqids. A class name changes when the model is renamed or moved, so pass a fixed salt (`->salt('your-model')`) or use a morph map when that can happen.
+
+Salting does not use PHP's random number generator: a salt gives the same sqids on every PHP version, and `rand()`, `shuffle()` and friends are left untouched.
 
 ## Changelog
 

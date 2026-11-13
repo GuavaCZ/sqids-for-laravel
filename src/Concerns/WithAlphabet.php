@@ -2,19 +2,18 @@
 
 namespace Guava\Sqids\Concerns;
 
-use Sqids\Sqids;
-
 trait WithAlphabet
 {
     public function alphabet(string $alphabet): static
     {
-        $this->alphabet = $alphabet;
-
-        return $this;
+        return $this->configure($alphabet, $this->minLength, $this->blocklist);
     }
 
+    /**
+     * The alphabet as configured, before Sqids shuffles it.
+     */
     public function getAlphabet(): string
     {
-        return $this->alphabet ?? Sqids::DEFAULT_ALPHABET;
+        return $this->configuredAlphabet;
     }
 }

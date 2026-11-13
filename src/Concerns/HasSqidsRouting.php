@@ -11,7 +11,7 @@ trait HasSqidsRouting
         $field ??= 'sqid';
 
         return Str::afterLast($field, '.') === 'sqid'
-            ? $query->where($this->getKeyName(), $this->getSqids()->decode($value))
+            ? $query->where($this->getKeyName(), $this->getSqids()->forModel($this)->decode($value))
             : parent::resolveRouteBindingQuery($query, $value, $field);
     }
 
