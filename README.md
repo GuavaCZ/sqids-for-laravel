@@ -114,7 +114,7 @@ use Guava\Sqids\Sqids;
 
 Sqids::make()
 ->alphabet('0123456789abcdef')
-->encode([1,2,3]); /// Outputs 'c9bf67'
+->encode([1,2,3]); /// Outputs '489158'
 ```
 
 #### Customizing the minLength
@@ -122,7 +122,7 @@ Sqids::make()
 use Guava\Sqids\Sqids;
 
 Sqids::make()
-->minLength('8')
+->minLength(8)
 ->encode([1,2,3]); /// Outputs '86Rf07xd'
 ```
 
@@ -143,12 +143,12 @@ use Guava\Sqids\Sqids;
 
 Sqids::make()
 ->salt('my-salt')
-->encode([1,2,3]); /// Outputs 'rx035W'
+->encode([1,2,3]); /// Outputs 'MNtmFG'
 ```
 
-Salting is especially useful when used on Models with the `HasSqids` trait and you want every model to return different, unique IDs.
+Salting is especially useful on models, when you want every model to return different IDs: a record of `Model1` with the ID 1 then has a different sqid than a record of `Model2` with the ID 1.
 
-So for example a record of `Model1` with the ID 1 has a different sqid that a record of `Model2` with the ID 1.
+Called without a value, `salt()` uses the model's morph class: its class name, or its alias when you have a [morph map](https://laravel.com/docs/eloquent-relationships#custom-polymorphic-types).
 ```php
 use \Illuminate\Database\Eloquent\Model;
 use \Guava\Sqids\Concerns\HasSqids;
@@ -162,10 +162,66 @@ class YourModel extends Model {
     protected function getSqids(): Sqids
     {
         return Sqids::make()
-            ->salt() // This will use the model's class name as the salt, so every model generates different IDs
-        );
+            ->salt() // The model's morph class is the salt, so every model generates different IDs
+        ;
     }
 }
+```
+
+> [!IMPORTANT]
+> A salt must never change once sqids are in links, e-mails or a database column: a different salt gives different sqids. A class name changes when the model is renamed or moved, so pass a fixed salt (`->salt('your-model')`) or use a morph map when that can happen.
+
+Salting does not use PHP's random number generator: a salt gives the same sqids on every PHP version, and `rand()`, `shuffle()` and friends are left untouched.
+
+### Storing the sqid in a column
+`HasSqids` computes the sqid on every read, so the database knows nothing about it. When you need to search by it (by prefix too), join on it or read it from outside the app, store it in a column with the `HasStoredSqids` trait, used in place of `HasSqids` and `HasSqidsRouting`:
+```php
+use \Illuminate\Database\Eloquent\Model;
+use \Guava\Sqids\Concerns\HasStoredSqids;
+
+class YourModel extends Model {
+    use HasStoredSqids;
+    
+    // ...
+}
+```
+
+The ID is known only after the insert, so the column is filled right after the model is created. Make it nullable, with a unique index:
+```php
+$table->string('sqid')->nullable()->unique();
+```
+
+The sqid is the model's route key, looked up in the column, so only the stored sqid finds the model. Everything can be customized:
+```php
+class Ticket extends Model {
+    use HasStoredSqids;
+
+    // The column the sqid is stored in ('sqid' by default)
+    public function getSqidColumn(): string
+    {
+        return 'code';
+    }
+
+    // Brings a sqid from a URL to the form it is stored in
+    public function normalizeSqid(string $sqid): string
+    {
+        return strtoupper(trim($sqid));
+    }
+
+    protected function getSqids(): Sqids
+    {
+        return Sqids::make()
+            ->alphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            ->minLength(5)
+            ->salt('ticket')
+        ;
+    }
+}
+```
+
+Rows inserted without model events (bulk inserts, seeders using `WithoutModelEvents`) or before the column existed get no sqid. Fill them with:
+```php
+Ticket::backfillSqids(); // Returns the number of rows filled
 ```
 
 ## Changelog

@@ -4,6 +4,8 @@ namespace Guava\Sqids\Tests;
 
 use Guava\Sqids\SqidsServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
@@ -27,10 +29,25 @@ class TestCase extends Orchestra
     public function getEnvironmentSetUp($app)
     {
         config()->set('database.default', 'testing');
+    }
 
-        /*
-        $migration = include __DIR__.'/../database/migrations/create_sqids-for-laravel_table.php.stub';
-        $migration->up();
-        */
+    protected function defineDatabaseMigrations(): void
+    {
+        foreach (['posts', 'comments'] as $table) {
+            Schema::create($table, function (Blueprint $table) {
+                $table->id();
+            });
+        }
+
+        Schema::create('tickets', function (Blueprint $table) {
+            $table->id();
+            $table->string('code')->nullable()->unique();
+            $table->string('summary')->nullable();
+        });
+
+        Schema::create('invoices', function (Blueprint $table) {
+            $table->id();
+            $table->string('sqid')->nullable()->unique();
+        });
     }
 }

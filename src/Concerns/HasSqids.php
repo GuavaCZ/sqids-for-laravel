@@ -12,6 +12,7 @@ trait HasSqids
         return Attribute::make(
             get: function () {
                 return $this->getSqids()
+                    ->forModel($this)
                     ->encode($this->getKey())
                 ;
             },
